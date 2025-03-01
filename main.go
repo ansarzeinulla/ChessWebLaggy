@@ -22,7 +22,7 @@ var (
 
 const (
 	firebaseURL     = "https://shahmat-d555c-default-rtdb.firebaseio.com/"    // Firebase URL
-	credentialsFile = "shahmat-d555c-firebase-adminsdk-fbsvc-8196a93433.json" // Path to your Firebase service account JSON
+	credentialsFile = "shahmat-d555c-firebase-adminsdk-fbsvc-b543ad59de.json" // Path to your Firebase service account JSON
 )
 
 func main() {
