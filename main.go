@@ -163,8 +163,8 @@ func gameHandler(w http.ResponseWriter, r *http.Request) {
 		PlayerColor bool
 		FEN         string
 	}{
-		GameID:      "exampleGameID",                                            // You can replace this with dynamic game ID
-		PlayerColor: true,                                                       // Or dynamically set based on user
+		GameID:      gameID,                                                     // You can replace this with dynamic game ID
+		PlayerColor: playerColor,                                                // Or dynamically set based on user
 		FEN:         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", // Default starting FEN
 	}
 
