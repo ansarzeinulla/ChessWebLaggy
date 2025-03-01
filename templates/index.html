@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>String Input Page</title>
+</head>
+<body>
+    <h1>Enter a String</h1>
+    <form action="/" method="POST">
+        <label for="inputString">String:</label>
+        <input type="text" id="inputString" name="inputString" required maxlength="6" pattern="[A-Za-z]{6}">
+        <br><br>
+        
+        <label for="color">Color:</label>
+        <input type="checkbox" id="color" name="color">
+        <label for="color">Black Background</label>
+        <br><br>
+        
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
