@@ -14,7 +14,6 @@ import (
 	"google.golang.org/api/option"
 )
 
-// Global variables to store game details
 var (
 	gameID      string
 	playerColor bool
@@ -22,31 +21,33 @@ var (
 )
 
 const (
-	firebaseURL     = "https://shahmat-d555c-default-rtdb.firebaseio.com/" // Firebase URL
-	credentialsFile = "fire.json"                                          // Path to your Firebase service account JSON
+	firebaseURL     = "https://shahmat-d555c-default-rtdb.firebaseio.com/"    // Firebase URL
+	credentialsFile = "shahmat-d555c-firebase-adminsdk-fbsvc-8196a93433.json" // Path to your Firebase service account JSON
 )
 
 func main() {
-	// Serve the static HTML pages
 	ctx := context.Background()
 	opt := option.WithCredentialsFile(credentialsFile)
 	config := &firebase.Config{DatabaseURL: firebaseURL}
 
-	var err error
-	client, err = firebase.NewApp(ctx, config, opt)
+	// Create Firebase app
+	app, err := firebase.NewApp(ctx, config, opt)
 	if err != nil {
-		log.Fatalf("error initializing Firebase app: %v", err)
+		log.Fatalf("Error initializing Firebase app: %v", err)
+		return
 	}
+	client = app // Store app for later use
+
+	// Set up HTTP handlers
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/game", gameHandler)
 	http.Handle("/figures/", http.StripPrefix("/figures/", http.FileServer(http.Dir("figures"))))
 
-	// Start the web server
+	// Start the server
 	log.Println("Server started on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-// Handler to serve the index.html page and process the POST request
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		// Handle form submission
@@ -56,7 +57,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Retrieve the input string and color
+		// Retrieve input string and color
 		inputString := r.FormValue("inputString")
 		colorChecked := r.FormValue("color")
 
@@ -89,8 +90,16 @@ func isValidString(input string) bool {
 	return re.MatchString(input)
 }
 
-// Game handler to serve the game page
 func gameHandler(w http.ResponseWriter, r *http.Request) {
+	// Get the Firebase Realtime Database client
+	ctx := context.Background()
+	dbClient, err := client.Database(ctx)
+	if err != nil {
+		log.Printf("Error getting Firebase database client: %v", err)
+		http.Error(w, "Error connecting to Firebase Database", http.StatusInternalServerError)
+		return
+	}
+
 	// Handle POST request
 	if r.Method == "POST" {
 		var moveData struct {
@@ -129,16 +138,8 @@ func gameHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Update Firebase with the new game state (move)
-		dbClient, err := client.Database(context.Background())
-		if err != nil {
-			log.Printf("Error connecting to Firebase Database: %v", err)
-			http.Error(w, "Error connecting to Firebase Database", http.StatusInternalServerError)
-			return
-		}
-
-		// Corrected Firebase path reference
-		firebaseRef := dbClient.NewRef("games/" + moveData.FEN + "/aboba") // Ensure this matches your Firebase structure
+		// Firebase path reference
+		firebaseRef := dbClient.NewRef("games-" + gameID + "-aboba")
 
 		// Set the move in Firebase
 		err = firebaseRef.Set(context.Background(), moveStr)
@@ -163,8 +164,8 @@ func gameHandler(w http.ResponseWriter, r *http.Request) {
 		PlayerColor bool
 		FEN         string
 	}{
-		GameID:      gameID,                                                     // You can replace this with dynamic game ID
-		PlayerColor: playerColor,                                                // Or dynamically set based on user
+		GameID:      gameID,
+		PlayerColor: playerColor,
 		FEN:         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", // Default starting FEN
 	}
 
