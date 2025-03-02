@@ -1,6 +1,6 @@
-setInterval(() => {
-    location.reload();
-}, 300);
+// setInterval(() => {
+//     location.reload();
+// }, 300);
 let moveHistory = [];  // Track the history of moves
 let currentFEN = document.getElementById("board").getAttribute("game-fen");
 console.log("Current FEN:", currentFEN); // Debugging: Check if FEN is being retrieved correctly

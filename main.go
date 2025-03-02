@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
-	"net/http/httptest"
 	"time"
 
 	firebase "firebase.google.com/go/v4"
@@ -47,19 +47,22 @@ func main() {
 }
 
 func startGameLoop() {
-	ticker := time.NewTicker(100 * time.Millisecond)
+	ticker := time.NewTicker(200 * time.Millisecond)
 	defer ticker.Stop()
 
 	for range ticker.C {
 		go func() {
-			// Simulate JSON request body
 			jsonData := `{"from":"e2","to":"e4","fen":""}`
-			req := httptest.NewRequest(http.MethodPost, "/game", bytes.NewBuffer([]byte(jsonData)))
-			req.Header.Set("Content-Type", "application/json")
+			resp, err := http.Post("http://localhost:8080/game", "application/json", bytes.NewBuffer([]byte(jsonData)))
+			if err != nil {
+				log.Printf("Error making HTTP request: %v", err)
+				return
+			}
+			defer resp.Body.Close()
 
-			// Call gameHandler directly with a fake response writer
-			fakeWriter := &fakeResponseWriter{}
-			gameHandler(fakeWriter, req)
+			// Read response
+			body, _ := io.ReadAll(resp.Body)
+			log.Printf("Move Response: %s", body)
 		}()
 	}
 }
