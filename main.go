@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/http/httptest"
 	"time"
 
 	firebase "firebase.google.com/go/v4"
@@ -51,20 +52,35 @@ func startGameLoop() {
 
 	for range ticker.C {
 		go func() {
-			// Simulate a JSON request body for POST
-			jsonData := []byte(`{"from":"e2","to":"e4","fen":""}`)
-			resp, err := http.Post("http://localhost:8080/game", "application/json", bytes.NewBuffer(jsonData))
-			if err != nil {
-				log.Printf("Error making HTTP request: %v", err)
-				return
-			}
-			resp.Body.Close() // Close response to prevent leaks
+			// Simulate JSON request body
+			jsonData := `{"from":"e2","to":"e4","fen":""}`
+			req := httptest.NewRequest(http.MethodPost, "/game", bytes.NewBuffer([]byte(jsonData)))
+			req.Header.Set("Content-Type", "application/json")
+
+			// Call gameHandler directly with a fake response writer
+			fakeWriter := &fakeResponseWriter{}
+			gameHandler(fakeWriter, req)
 		}()
 	}
 }
 
-type fakeResponseWriter struct{}
+type fakeResponseWriter struct {
+	header http.Header
+	body   bytes.Buffer
+	status int
+}
 
-func (f *fakeResponseWriter) Header() http.Header        { return http.Header{} }
-func (f *fakeResponseWriter) Write([]byte) (int, error)  { return 0, nil }
-func (f *fakeResponseWriter) WriteHeader(statusCode int) {}
+func (f *fakeResponseWriter) Header() http.Header {
+	if f.header == nil {
+		f.header = make(http.Header)
+	}
+	return f.header
+}
+
+func (f *fakeResponseWriter) Write(b []byte) (int, error) {
+	return f.body.Write(b)
+}
+
+func (f *fakeResponseWriter) WriteHeader(statusCode int) {
+	f.status = statusCode
+}
