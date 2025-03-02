@@ -38,6 +38,7 @@ func main() {
 	http.HandleFunc("/game", gameHandler)
 	log.Println("Server started on :8080")
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+http.Handle("/figures/", http.StripPrefix("/figures/", http.FileServer(http.Dir("figures"))))
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
