@@ -153,3 +153,52 @@ func gameHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 	}
 }
+
+func fetchFENHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+	dbClient, err := client.Database(ctx)
+	if err != nil {
+		http.Error(w, "Error connecting to Firebase Database", http.StatusInternalServerError)
+		return
+	}
+
+	firebaseRef := dbClient.NewRef("games-" + gameID + "-aboba")
+	var currentFEN string
+	if err := firebaseRef.Get(ctx, &currentFEN); err != nil {
+		http.Error(w, "Error retrieving FEN from Firebase", http.StatusInternalServerError)
+		return
+	}
+	if currentFEN == "" {
+		currentFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+	}
+
+	response := struct {
+		FEN string `json:"fen"`
+	}{
+		FEN: currentFEN,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func serveGamePageHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles("templates/game.html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	data := struct {
+		GameID      string
+		PlayerColor bool
+	}{
+		GameID:      gameID,
+		PlayerColor: playerColor,
+	}
+
+	err = tmpl.Execute(w, data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}

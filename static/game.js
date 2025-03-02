@@ -128,34 +128,24 @@ function sendMoveToServer(from, to) {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ from, to, fen: currentFEN })
+        body: JSON.stringify({ from, to, fen: currentFEN })  // Use the latest FEN
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();  // Attempt to parse JSON
-    })
+    .then(response => response.json())
     .then(data => {
-        if (data) {
-            if (data.valid) {
-                currentFEN = data.fen;  // Assuming the server returns the updated FEN
-                console.log("Move successful");
-
-                // Update the board with the new FEN
-                updateBoard(currentFEN);
-            } else {
-                showErrorMessage();
-            }
+        if (data.valid) {
+            currentFEN = data.fen;  // Update the FEN with the new one from server
+            console.log("Move successful:", currentFEN);
+            updateBoard(currentFEN);  // Refresh board
         } else {
-            console.error('Received empty or invalid data:', data);
+            showErrorMessage();
         }
     })
     .catch(error => {
-        updateBoard(fen)
         console.error('Error:', error);
+        updateBoard(currentFEN)
     });
 }
+
 
 // Show the "Illegal Move" message
 function showErrorMessage() {
@@ -168,3 +158,20 @@ function showErrorMessage() {
 
 // Fetch the FEN string passed from the Go server (injected into the HTML template)
 createBoard(currentFEN);  // Generate the board using FEN
+
+
+function fetchAndUpdateFEN() {
+    fetch('/fetch-fen')  // Calls Go server
+        .then(response => response.json())
+        .then(data => {
+            if (data.fen !== currentFEN) {  // Only update if FEN changed
+                currentFEN = data.fen;
+                updateBoard(currentFEN);  // Update board
+            }
+        })
+        .catch(error => console.error('Error fetching FEN:', error));
+}
+
+// Fetch FEN every 100ms
+setInterval(fetchAndUpdateFEN, 100);
+

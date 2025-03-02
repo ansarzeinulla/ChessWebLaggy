@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -42,6 +43,7 @@ func main() {
 	log.Println("Server started on :8080")
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.Handle("/figures/", http.StripPrefix("/figures/", http.FileServer(http.Dir("figures"))))
+	http.HandleFunc("/fetch-fen", fetchFENHandler)
 	go startGameLoop()
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
@@ -52,17 +54,35 @@ func startGameLoop() {
 
 	for range ticker.C {
 		go func() {
-			jsonData := `{"from":"e2","to":"e4","fen":""}`
-			resp, err := http.Post("http://localhost:8080/game", "application/json", bytes.NewBuffer([]byte(jsonData)))
+			// 🔹 Fetch the latest FEN before making a move
+			resp, err := http.Get("http://localhost:8080/fetch-fen")
 			if err != nil {
-				log.Printf("Error making HTTP request: %v", err)
+				log.Printf("Error fetching FEN: %v", err)
 				return
 			}
 			defer resp.Body.Close()
 
-			// Read response
-			body, _ := io.ReadAll(resp.Body)
-			log.Printf("Move Response: %s", body)
+			var fenData struct {
+				FEN string `json:"fen"`
+			}
+			if err := json.NewDecoder(resp.Body).Decode(&fenData); err != nil {
+				log.Printf("Error decoding FEN response: %v", err)
+				return
+			}
+
+			// 🔹 If FEN hasn't changed, don't send a move
+			if fenData.FEN == "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" {
+				jsonData := `{"from":"e2","to":"e4","fen":""}`
+				resp, err := http.Post("http://localhost:8080/game", "application/json", bytes.NewBuffer([]byte(jsonData)))
+				if err != nil {
+					log.Printf("Error making HTTP request: %v", err)
+					return
+				}
+				defer resp.Body.Close()
+
+				body, _ := io.ReadAll(resp.Body)
+				log.Printf("Move Response: %s", body)
+			}
 		}()
 	}
 }
