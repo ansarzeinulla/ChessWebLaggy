@@ -1,4 +1,4 @@
-# Chess Web - Version 2.1
+# Chess Web - Version 2.1 (DISCARDED PROJECT)
 
 ## Overview
 Chess Web is a simple multiplayer chess game that allows you to play with a friend or by yourself. The game runs on a Go server and uses a web-based interface for making moves.
@@ -14,6 +14,7 @@ Chess Web is a simple multiplayer chess game that allows you to play with a frie
    ```
    http://localhost:8080
    ```
+##THIS IS DISCARDED PROJECT (Second Warning)
 
 ## How to Play
 1. Enter a unique 6-letter long game code (ONLY English letters are allowed). Case does not matter, as all letters will be converted to uppercase.
@@ -39,15 +40,10 @@ Chess Web is a simple multiplayer chess game that allows you to play with a frie
 - **1.0 - February 21, 21:50**
 - **2.0 - March 1, 15:45**
 - **2.1 - March 2, 17:15**
-
-## Future Plans
-1) Implement a custom chess game class to support up to **20x20** boards and **2-8 players**.
-2) Add **offering draw, resign, and points tracking**.
-3) Implement **automatic draws (50-move rule, stalemate, checkmate detection)**.
-4) Enable **pawn promotion**.
-5) Store **move history using PGN notation**.
-6) Ensure **uniqueness of 6-letter game IDs**.
+- **Project is discarded since it is too laggy**
 
 ---
-Enjoy the game and stay tuned for updates!
+Enjoy the game and forget this project
 
+**Author:**
+Ansar Zeinulla
